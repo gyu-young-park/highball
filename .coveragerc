@@ -1,0 +1,2 @@
+[run]
+omit = venv/*, test_highball.py,conftest.py,app.py
