@@ -5,15 +5,23 @@ from webob import Request, Response
 from requests import Session as RequestSession
 from wsgiadapter import WSGIAdapter as RequestWSGIAdapter
 from jinja2 import Environment, FileSystemLoader
+from whitenoise import WhiteNoise
 
 class API:
-    def __init__(self, templates_dir="templates"):
+    def __init__(self, templates_dir="templates", static_dir="static"):
         self._routes = {}
         self._templates_env = Environment(
             loader=FileSystemLoader(os.path.abspath(templates_dir))
         )
+        
+        self.exception_handler = None
+        
+        self.whitenoise = WhiteNoise(self.wsgi_app, root=static_dir)
 
     def __call__(self, environ, start_response):
+        return self.whitenoise(environ=environ, start_response=start_response)
+    
+    def wsgi_app(self, environ, start_response):
         request = Request(environ)
 
         response = self.handle_request(request)
@@ -29,16 +37,22 @@ class API:
         response = Response()
 
         handler, kwargs = self._find_hadler(request_path=request.path)
-
-        if handler is not None:
-            if inspect.isclass(handler):
-                handler = getattr(handler(), request.method.lower(), None)
-                if handler is None:
-                    raise AttributeError("Method not allowed", request.method)
+        try:
+            if handler is not None:
+                if inspect.isclass(handler):
+                    handler = getattr(handler(), request.method.lower(), None)
+                    if handler is None:
+                        raise AttributeError("Method not allowed", request.method)
+                
+                handler(request, response, **kwargs)  
+            else:
+                self.default_response(response)
+        except Exception as e:
+            if self.exception_handler is None:
+                raise e
+            else:
+                self.exception_handler(request, response, e)
             
-            handler(request, response, **kwargs)  
-        else:
-            self.default_response(response)
         return response
 
     def _find_hadler(self, request_path):
@@ -68,3 +82,6 @@ class API:
     def default_response(self, response):
         response.status_code = 404
         response.text = "Not found"
+        
+    def add_exception_handler(self, exception_handler):
+        self.exception_handler = exception_handler
