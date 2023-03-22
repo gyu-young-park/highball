@@ -5,16 +5,20 @@ app = API()
 
 @app.route("/home")
 def home(request, response):
-    response.text = "Hello from the HOME page"
+    print(request.method)
+    if request.method == 'GET':
+        response.text = "Hello from the HOME page"
+    else:
+        raise AttributeError("Method not allowed")
 
-@app.route("/about")
+@app.route("/about", allowed_methods=["get", "post"])
 def about(request, response):
     response.text = "Hello from the ABOUT page"
 
 @app.route("/hello/{name}")
 def greeting(request, response, name):
     response.text = f"Hello, {name}"
-    
+
 @app.route("/book")
 class BooksResource:
     def get(self, req, resp):
