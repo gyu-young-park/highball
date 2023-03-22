@@ -1,12 +1,13 @@
 import os
 import inspect
 from parse import parse
-from webob import Request, Response
+from webob import Request
 from requests import Session as RequestSession
 from wsgiadapter import WSGIAdapter as RequestWSGIAdapter
 from jinja2 import Environment, FileSystemLoader
 from whitenoise import WhiteNoise
 from middleware import Middleware
+from response import Response
 
 class API:
     def __init__(self, templates_dir="templates", static_dir="static"):
@@ -58,7 +59,7 @@ class API:
                     if request.method.lower() not in allowed_methods:
                         raise AttributeError("Method not allowed", request.method)
                 
-                handler(request, response, **kwargs)  
+                handler(request, response, **kwargs)
             else:
                 self.default_response(response)
         except Exception as e:
