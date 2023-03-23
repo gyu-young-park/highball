@@ -6,8 +6,8 @@ from requests import Session as RequestSession
 from wsgiadapter import WSGIAdapter as RequestWSGIAdapter
 from jinja2 import Environment, FileSystemLoader
 from whitenoise import WhiteNoise
-from middleware import Middleware
-from response import Response
+from .middleware import Middleware
+from .response import Response
 
 class API:
     def __init__(self, templates_dir="templates", static_dir="static"):
