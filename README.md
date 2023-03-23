@@ -143,12 +143,3 @@ class SimpleCustomMiddleware(Middleware):
 
 app.add_middleware(SimpleCustomMiddleware)
 ```
-
-documentation을 추가하였으니, PyPI에 파일을 올려주도록 하자. 이 떄 버전을 바꿔주어야한다. `setup.py`에 가서 `0.0.1`에서 `0.0.2`로 바꾸어주도록 하자. 또한, `dist` 디렉터리르 또 갱신해주기 위해서 다음의 명령어로 다시 써주도록 하자.
-
-```py
-python setup.py sdist bdist_wheel
-twine upload dist/*
-```
-
-documentation이 잘되었는 지 확인해보도록 하자.
