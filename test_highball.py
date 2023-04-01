@@ -1,7 +1,7 @@
 import pytest
 
-from api import API
-from middleware import Middleware
+from highball.api import API
+from highball.middleware import Middleware
 
 FILE_DIR = "css"
 FILE_NAME = "main.css"
