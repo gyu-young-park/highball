@@ -25,9 +25,30 @@ class Database:
         for row in self.conn.execute(sql).fetchall():
             instance = table()
             for field, value in zip(fields, row):
+                if field.endswith("_id"):
+                    field = field[:-3]
+                    fk = getattr(table, field)
+                    value = self.get(fk.table, id=value)
                 setattr(instance, field, value)
             result.append(instance)
         return result
+    
+    def get(self, table, id):
+        sql, fields, params = table._get_select_where_sql(id=id)
+        
+        row = self.conn.execute(sql, params).fetchone()
+        if row is None:
+            raise Exception(f"{table.__name__} instance with id {id} does not exist")
+    
+        instance = table()
+        for field, value in zip(fields, row):
+            if field.endswith("_id"):
+                field = field[:-3]
+                fk = getattr(table, field)
+                value = self.get(fk.table, id=value)
+            setattr(instance, field, value)
+        
+        return instance
     
 class Table:
     def __init__(self, **kwargs):
@@ -75,7 +96,7 @@ class Table:
             
         sql = SELECT_WHERE_SQL.format(name=cls.__name__.lower(), fields=", ".join(fields))
         params = [id]
-        
+
         return sql, fields, params
     
     @classmethod
