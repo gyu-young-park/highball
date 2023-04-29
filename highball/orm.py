@@ -134,6 +134,21 @@ class Table:
         
         return sql, values
     
+    @classmethod
+    def _get_select_all_sql(cls):
+        SELECT_ALL_SQL = "SELECT {fields} FROM {name};"
+
+        fields = ["id"]
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            if isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+        
+        sql = SELECT_ALL_SQL.format(name=cls.__name__.lower(), fields=", ".join(fields))
+
+        return sql, fields
+    
 class Column:
     def __init__(self, column_type):
         self.type = column_type
