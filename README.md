@@ -6,6 +6,8 @@ Python Web Framework built for learning purpose
 
 It's a WSGI framework and can be used with any WSGI application server such as Gunicorn.
 
+It also provides so many features of routes, templates, static files and ORM. Especially ORM has internal sqlite3, so you can make very easy and tiny database logic.
+
 ## Installation
 
 ```shell
@@ -142,4 +144,65 @@ class SimpleCustomMiddleware(Middleware):
 
 
 app.add_middleware(SimpleCustomMiddleware)
+```
+
+### ORM
+You can create table and manipulate table by using python obejct. here are different examples. 
+
+By creating 'Database' object, you can use highball ORM features
+```python
+from highball.orm import Database
+
+def db():
+    DB_PATH = "./test.db"
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+    db = Database(DB_PATH)
+    return db
+```
+
+You can make table object and set attributes `Column` and `ForeignKey`
+```py
+from highball.orm import Table, Column, ForeignKey
+
+class Author(Table):
+    name = Column(str)
+    age = Column(int)
+    
+class Book(Table):
+    title = Column(str)
+    published = Column(bool)
+    author = ForeignKey(Author)
+```
+`Author` has attributes of 'name' and 'age'. And `Book` has attributes of 'title', 'published' and 'author', Notice that `Book`'s `author` is 'ForeignKey' so it is connected to `Author` instance
+
+You can create table as the python table instance to database by using 'create' method of 'Database' instance
+```py
+db.create(Author)
+```
+
+And then, you can store the table data in Database by using 'save` method of 'Database' instance
+```py
+vik = Author(name="Vik Star", age=43)
+db.save(vik)
+```
+
+You can get all table rows or specific table row by using `all` and `get` of 'Database' instance
+```py
+authors = db.all(Author)
+author_1_from_db = db.get(Author, id=1)
+```
+
+Lastly, you can manipulate table data by using `update` and `delete` of 'Database' instance
+```py
+## update
+db.create(Author)
+author_instance = Author(name="author_instance", age=23)
+db.save(author_instance)
+
+author_instance.age = 43
+author_instance.name = "author_instance2"
+db.update(author_instance)
+## delete
+db.delete(Author, id=author_instance.id)
 ```

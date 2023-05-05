@@ -12,7 +12,7 @@ DESCRIPTION = "highball Python Web Framework built for learning purposes."
 EMAIL = "gyoue200125@gmail.com"
 AUTHOR = "gyu"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 # Which packages are required for this module to be executed?
 REQUIRED = [

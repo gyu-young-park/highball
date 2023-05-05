@@ -12,7 +12,7 @@ def test_define_tables(Author, Book):
     assert Author.name.sql_type == 'TEXT'
     assert Author.age.sql_type == "INTEGER"
     
-def test_create_tables(db,Author, Book):
+def test_create_tables(db, Author, Book):
     db.create(Author)
     db.create(Book)
     
@@ -146,7 +146,7 @@ def test_delete_author(db, Author):
     john = Author(name="John Doe", age=23)
     db.save(john)
     
-    db.delete(Author, id=1)
+    db.delete(Author, id=john.id)
     
     with pytest.raises(Exception):
         db.get(Author, 1)
