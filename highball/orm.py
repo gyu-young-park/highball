@@ -50,6 +50,16 @@ class Database:
         
         return instance
     
+    def update(self, instance):
+        sql, values = instance._get_update_sql()
+        self.conn.execute(sql, values)
+        self.conn.commit()
+        
+    def delete(self, table, id):
+        sql, params = table._get_delete_sql(id)
+        self.conn.execute(sql, params)
+        self.conn.commit()
+    
 class Table:
     def __init__(self, **kwargs):
         self._data = {
@@ -115,6 +125,29 @@ class Table:
         name = cls.__name__.lower()
         return CREATE_TABLE_SQL.format(name=name, fields=fields)
     
+    @classmethod
+    def _get_select_all_sql(cls):
+        SELECT_ALL_SQL = "SELECT {fields} FROM {name};"
+
+        fields = ["id"]
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+            if isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+        
+        sql = SELECT_ALL_SQL.format(name=cls.__name__.lower(), fields=", ".join(fields))
+
+        return sql, fields
+    
+    @classmethod
+    def _get_delete_sql(cls, id):
+        DELETE_SQL = 'DELETE FROM {name} WHERE id = ?'
+        
+        sql = DELETE_SQL.format(name=cls.__name__.lower())
+        
+        return sql, [id]
+    
     def _get_insert_sql(self):
         INSERT_SQL = "INSERT INTO {name} ({fields}) VALUES ({placeholders});"
         cls = self.__class__
@@ -139,20 +172,29 @@ class Table:
         
         return sql, values
     
-    @classmethod
-    def _get_select_all_sql(cls):
-        SELECT_ALL_SQL = "SELECT {fields} FROM {name};"
-
-        fields = ["id"]
+    def _get_update_sql(self):
+        UPDATE_SQL = "UPDATE {name} SET {fields} WHERE id = ?"
+        cls = self.__class__
+        fields = []
+        values = []
+        
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
-            if isinstance(field, ForeignKey):
+                values.append(getattr(self, name))
+            elif isinstance(field, ForeignKey):
                 fields.append(name + "_id")
+                values.append(getattr(self, name).id)
         
-        sql = SELECT_ALL_SQL.format(name=cls.__name__.lower(), fields=", ".join(fields))
-
-        return sql, fields
+        values.append(getattr(self, 'id'))
+        
+        sql = UPDATE_SQL.format(
+            name=cls.__name__.lower(),
+            fields=', '.join([f"{field} = ?" for field in fields])
+        )
+        
+        return sql, values
+                
     
 class Column:
     def __init__(self, column_type):
